@@ -1,0 +1,16 @@
+library(survival)
+
+data <- read.csv("your_file.csv")
+
+cox_results <- list()
+
+for (outcome_var in colnames(data)[which(colnames(data) %in% LETTERS[6:26])]) {
+  
+  cox_formula <- as.formula(paste("Surv(", outcome_var, ") ~ A +", paste(colnames(data)[2:8], collapse = "+")))
+  
+  cox_model <- coxph(cox_formula, data = data)
+  
+  cox_results[[outcome_var]] <- summary(cox_model)
+}
+
+saveRDS(cox_results, file = "cox_regression_results.rds")
