@@ -1,0 +1,69 @@
+
+library(dplyr)
+library(mediation)
+
+
+data <- read.csv("data.csv")
+
+
+data[, 50:60] <- lapply(data[, 50:60], as.factor)
+
+
+x <- data[, 12]   
+covariates <- data[, 14:18]  
+mediator <- data[, 20] 
+outcome_columns <- 50:60  
+
+
+results <- data.frame(
+  outcome = character(),
+  acme = numeric(),
+  acme_ci_lower = numeric(),
+  acme_ci_upper = numeric(),
+  ade = numeric(),
+  ade_ci_lower = numeric(),
+  ade_ci_upper = numeric(),
+  total_effect = numeric(),
+  prop_med = numeric(),
+  stringsAsFactors = FALSE
+)
+
+
+for (i in outcome_columns) {
+  y <- data[, i]  
+  
+
+  data_analysis <- data.frame(x, covariates, mediator, y)
+  
+ 
+  mediator_model <- lm(mediator ~ x + covariates, data = data_analysis)
+  
+
+  outcome_model <- glm(y ~ x + mediator + covariates, family = binomial(link = "logit"), data = data_analysis)
+  
+
+  mediation_result <- mediate(mediator_model, outcome_model, treat = "x", mediator = "mediator")
+  
+
+  summary_result <- summary(mediation_result)
+  
+ 
+  results <- rbind(
+    results,
+    data.frame(
+      outcome = colnames(data)[i],
+      acme = summary_result$d.avg,
+      acme_ci_lower = summary_result$d.avg.ci[1],
+      acme_ci_upper = summary_result$d.avg.ci[2],
+      ade = summary_result$z.avg,
+      ade_ci_lower = summary_result$z.avg.ci[1],
+      ade_ci_upper = summary_result$z.avg.ci[2],
+      total_effect = summary_result$tau.coef,
+      prop_med = summary_result$n.avg,
+      stringsAsFactors = FALSE
+    )
+  )
+}
+
+
+print(results)
