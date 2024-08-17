@@ -1,0 +1,9 @@
+dd <- datadist(data1)
+options(datadist="dd")
+fit <- cph(Surv(G47time,G47label)~rcs(Change.TyG,4)+sex+Ethnicity+Townsend.deprivation.index+BMI+Smoke+Alcohol.intake+MET.mins.week+Fruit.intake+Vegetable.intake+Oily.fish.intake+Processed.meat.intake,data = data1)
+
+fit <- update(fit)
+anova(fit)
+HR <- Predict(fit,Change.TyG,fun=exp,ref.zero = TRUE)
+P1 <- ggplot()+geom_hline(yintercept = 1,linetype=2)+labs( x = "Change.TyG", y = "HR (95% CI)") +geom_line(data = HR,aes(Change.TyG,yhat),linetype="solid",size=1,alpha=0.7,colour="purple")+geom_ribbon(data = HR,aes(Change.TyG,ymin=lower,ymax=upper),alpha=0.1,fill="purple")+theme_classic()
+P1
